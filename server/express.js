@@ -12,29 +12,29 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 
-const express= require('express')
-const app = express()
+const express = require('express');
+const app = express();
 //const port = 3000
 
 
 app.listen(port, (err) => {
   if (err) {
-    return console.log("something bad happened", err)
+    return console.log('something bad happened', err);
   }
 
-  console.log(`server is listeneing on ${port}`)
-})
+  console.log(`server is listeneing on ${port}`);
+});
 
 app.use((request, response, next) => {
-  request.chance = Math.random()
-  next()
-})
+  request.chance = Math.random();
+  next();
+});
 
-app.get('/',(request, response) => {
+app.get('/', (request, response) => {
   response.json({
     chance: request.chance
-  })
-})
+  });
+});
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
 // This code allows this server to talk to websites that

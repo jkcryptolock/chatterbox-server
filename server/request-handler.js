@@ -1,7 +1,7 @@
 const url = require('url');
-const fs = require('fs')
-const path = require('path')
-const querystring = require('querystring');
+// const fs = require('fs')
+// const path = require('path')
+// const querystring = require('querystring');
 const messages = require('./classes/messages.js');
 
 /*************************************************************
@@ -35,41 +35,47 @@ var requestHandler = function(request, response) {
   // console.logs in your code.
 
   let pathName = url.parse(request.url).pathname;
-  let query = url.parse(request.url).query;
-  console.log(pathName)
+  // let query = url.parse(request.url).query;
 
   if (request.method === 'OPTIONS') {
-    var statusCode = 200;
-    var headers = defaultCorsHeaders;
-    headers['Content-Type'] = 'text/plain';
-    response.writeHead(statusCode, { 'Allow': 'OPTIONS, GET, HEAD, POST'});
+    let statusCode = 200;
+    let headers = defaultCorsHeaders;
+    headers['Content-Type'] = 'application/json';
+    response.writeHead(statusCode, headers);
     response.end();
   }
 
-  if (request.method === 'GET'){
+  if (request.method === 'GET') {
     if (!pathName.includes('/classes/messages')) {
       response.writeHead(404, {'Content-Type': 'text/plain'});
-      response.write('Page Was Not Found');
-      response.end();
+      // response.write('Page Was Not Found');
+      response.end('Page Was Not Found');
     } else {
-      response.writeHead(200, { 'Content-Type': 'application/json'});
-      response.write(JSON.stringify(messages));
-      response.end();
+      let JSONdata = '';
+      JSONdata = JSON.stringify(messages);
+      var headers = defaultCorsHeaders;
+      headers['Content-Type'] = 'application/json';
+      response.writeHead(200, headers);
+      // response.write(JSONdata);
+      response.end(JSONdata);
     }
   }
 
   if (request.method === 'POST') {
     let body = '';
 
-    request.on('data', function(data) {
-      body += data;
+    request.on('data', chunk => {
+      body += chunk.toString();
+      body = JSON.parse(body);
+      messages.getPost(body);
+    });
 
-    })
+    request.on('end', () => {
+    //   var headers = defaultCorsHeaders;
+      response.writeHead(201, {'Access-Control-Allow-Origin': '*'});
+      response.end();
+    });
 
-    request.on('end', function () {
-      console.log(body);
-      getPost(body);
-    })
   }
 
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
@@ -115,10 +121,10 @@ var requestHandler = function(request, response) {
 // client from this domain by setting up static file serving.
 
 var defaultCorsHeaders = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'access-control-allow-headers': 'content-type, accept',
-  'access-control-max-age': 10 // Seconds.
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'content-type, x-parse-application-id, x-parse-rest-api-key',
+  'Access-Control-Max-Age': 86400 // Seco
 };
 
 
