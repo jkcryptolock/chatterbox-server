@@ -1,3 +1,9 @@
+const url = require('url');
+const fs = require('fs')
+const path = require('path')
+const querystring = require('querystring');
+const messages = require('./classes/messages.js');
+
 /*************************************************************
 
 You should implement your request handler function in this file.
@@ -27,23 +33,64 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
+
+  let pathName = url.parse(request.url).pathname;
+  let query = url.parse(request.url).query;
+  console.log(pathName)
+
+  if (request.method === 'OPTIONS') {
+    var statusCode = 200;
+    var headers = defaultCorsHeaders;
+    headers['Content-Type'] = 'text/plain';
+    response.writeHead(statusCode, { 'Allow': 'OPTIONS, GET, HEAD, POST'});
+    response.end();
+  }
+
+  if (request.method === 'GET'){
+    if (!pathName.includes('/classes/messages')) {
+      response.writeHead(404, {'Content-Type': 'text/plain'});
+      response.write('Page Was Not Found');
+      response.end();
+    } else {
+      response.writeHead(200, { 'Content-Type': 'application/json'});
+      response.write(JSON.stringify(messages));
+      response.end();
+    }
+  }
+
+  if (request.method === 'POST') {
+    let body = '';
+
+    request.on('data', function(data) {
+      body += data;
+
+    })
+
+    request.on('end', function () {
+      console.log(body);
+      getPost(body);
+    })
+  }
+
   console.log('Serving request type ' + request.method + ' for url ' + request.url);
 
   // The outgoing status.
-  var statusCode = 200;
+  // var statusCode = 200;
 
   // See the note below about CORS headers.
-  var headers = defaultCorsHeaders;
+  // var headers = defaultCorsHeaders;
 
   // Tell the client we are sending them plain text.
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = 'text/plain';
+  // headers['Content-Type'] = 'text/plain';
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
-  response.writeHead(statusCode, headers);
+  // response.writeHead(statusCode, headers);
+
+
 
   // Make sure to always call response.end() - Node may not send
   // anything back to the client until you do. The string you pass to
@@ -51,8 +98,10 @@ var requestHandler = function(request, response) {
   // up in the browser.
   //
   // Calling .end "flushes" the response's internal buffer, forcing
-  // node to actually send all the data over to the client.
-  response.end('Hello, World!');
+  // node to actually send all the data over to the client
+  // response.end('Hello, World!');
+
+
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -64,6 +113,7 @@ var requestHandler = function(request, response) {
 //
 // Another way to get around this restriction is to serve you chat
 // client from this domain by setting up static file serving.
+
 var defaultCorsHeaders = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -71,3 +121,9 @@ var defaultCorsHeaders = {
   'access-control-max-age': 10 // Seconds.
 };
 
+
+
+
+exports.requestHandler = requestHandler;
+exports.defaultCorsHeaders = defaultCorsHeaders;
+exports.messages = messages;
